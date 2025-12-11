@@ -503,6 +503,53 @@ async function loadGallery() {
     }
 }
 
+// Lightbox functionality
+let currentLightboxImage = null;
+let currentLightboxCaption = null;
+
+function showLightbox(imageUrl, caption) {
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const lightboxCaption = document.getElementById('lightbox-caption');
+    
+    // Store current image data for download
+    currentLightboxImage = imageUrl;
+    currentLightboxCaption = caption || '';
+    
+    // Set image source
+    lightboxImage.src = imageUrl;
+    lightboxImage.alt = caption || 'Egg meal';
+    
+    // Set caption
+    if (caption && caption.trim()) {
+        lightboxCaption.textContent = caption;
+        lightboxCaption.style.display = 'flex';
+    } else {
+        lightboxCaption.textContent = '';
+        lightboxCaption.style.display = 'none';
+    }
+    
+    // Show lightbox
+    lightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Prevent background scrolling
+}
+
+function closeLightbox() {
+    const lightbox = document.getElementById('lightbox');
+    lightbox.style.display = 'none';
+    document.body.style.overflow = ''; // Restore scrolling
+    
+    // Clear stored data
+    currentLightboxImage = null;
+    currentLightboxCaption = null;
+}
+
+function downloadFromLightbox() {
+    if (currentLightboxImage) {
+        downloadImage(currentLightboxImage, currentLightboxCaption);
+    }
+}
+
 function downloadImage(imageUrl, caption) {
     // Create a temporary anchor element to trigger download
     const link = document.createElement('a');
@@ -516,7 +563,10 @@ function downloadImage(imageUrl, caption) {
     document.body.removeChild(link);
 }
 
-// Make downloadImage available globally for onclick handlers
+// Make functions available globally for onclick handlers
+window.showLightbox = showLightbox;
+window.closeLightbox = closeLightbox;
+window.downloadFromLightbox = downloadFromLightbox;
 window.downloadImage = downloadImage;
 
 function displayGallery(images) {
@@ -540,8 +590,8 @@ function displayGallery(images) {
                 </div>
             </div>
             <img src="${safeUrl}" alt="${image.caption || 'Egg meal'}" class="gallery-item-image" loading="lazy" 
-                 onclick="window.downloadImage('${safeUrl}', '${safeCaption}')"
-                 title="Click to download full quality">
+                 onclick="showLightbox('${safeUrl}', '${safeCaption}')"
+                 title="Click to view full size">
             ${hasCaption ? `<div class="gallery-item-caption" id="caption-${safeId}">${escapeHtml(image.caption)}</div>` : '<div class="gallery-item-caption-empty" id="caption-' + safeId + '"></div>'}
         </div>
     `;
@@ -573,9 +623,6 @@ function syncEggCount() {
         }
     }
 }
-
-// Make downloadImage available globally for onclick handlers
-window.downloadImage = downloadImage;
 
 // Gallery menu functions
 function toggleGalleryMenu(imageId) {
@@ -752,5 +799,15 @@ if (document.readyState === 'loading') {
 // Clean up polling when page unloads
 window.addEventListener('beforeunload', () => {
     stopPolling();
+});
+
+// Close lightbox with ESC key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox && lightbox.style.display !== 'none') {
+            closeLightbox();
+        }
+    }
 });
 

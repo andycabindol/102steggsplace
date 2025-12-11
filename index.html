@@ -47,6 +47,21 @@
         </div>
     </div>
     
+    <!-- Lightbox Modal -->
+    <div id="lightbox" class="lightbox" style="display: none;">
+        <div class="lightbox-backdrop" onclick="closeLightbox()"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" onclick="closeLightbox()" title="Close">×</button>
+            <img id="lightbox-image" src="" alt="" class="lightbox-image">
+            <div class="lightbox-footer">
+                <p id="lightbox-caption" class="lightbox-caption"></p>
+                <button id="lightbox-download" class="lightbox-download-btn" onclick="downloadFromLightbox()">
+                    Download Image
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
