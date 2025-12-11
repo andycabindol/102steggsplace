@@ -43,7 +43,7 @@ export default async function handler(req, res) {
         console.error('Error parsing image item:', e, item);
         return null;
       }
-    }).filter(Boolean).reverse(); // Reverse to show newest first
+    }).filter(Boolean); // lpush adds newest first, so no need to reverse
 
     return res.status(200).json({
       success: true,
