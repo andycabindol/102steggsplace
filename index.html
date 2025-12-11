@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Egg Party 🥚</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Egg Party</h1>
+        
+        <div class="counter-section">
+            <button class="btn btn-minus" id="decreaseBtn">−</button>
+            <div class="number-wrapper">
+                <div class="number-display" id="eggCount">55</div>
+                <div class="remaining-text">eggs remaining</div>
+            </div>
+            <button class="btn btn-plus" id="increaseBtn">+</button>
+        </div>
+        
+        <div id="eggMessage" class="egg-message"></div>
+        
+        <div class="eggs-grid" id="eggsGrid"></div>
+
+        <div class="gallery-section">
+            <h2 class="gallery-title">Egg Meal Gallery 🍳</h2>
+            
+            <div class="upload-section">
+                <div class="upload-box">
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                    <label for="imageInput" class="upload-label">
+                        <span class="upload-icon">📷</span>
+                        <span>Choose Photo</span>
+                    </label>
+                    <input type="text" id="captionInput" placeholder="Add a caption..." class="caption-input">
+                    <button id="uploadBtn" class="btn-upload">Upload</button>
+                </div>
+                <div id="uploadStatus" class="upload-status"></div>
+            </div>
+
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
+
