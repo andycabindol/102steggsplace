@@ -1,9 +1,7 @@
 import { Redis } from '@upstash/redis';
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
-});
+// Initialize Redis - automatically reads from environment variables
+const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -11,8 +9,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Check if KV is configured
-    if (!redis.url || !redis.token) {
+    // Check if KV is configured (Redis.fromEnv() reads from UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+    if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL) {
       // Return empty gallery if KV is not configured (for local dev)
       return res.status(200).json({
         success: true,

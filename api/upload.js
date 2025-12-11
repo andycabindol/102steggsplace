@@ -3,10 +3,8 @@ import { Redis } from '@upstash/redis';
 import formidable from 'formidable';
 import fs from 'fs';
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN,
-});
+// Initialize Redis - automatically reads from environment variables
+const redis = Redis.fromEnv();
 
 export const config = {
   api: {
@@ -27,9 +25,10 @@ export default async function handler(req, res) {
       });
     }
     
-    if (!redis.url || !redis.token) {
+    // Check if KV is configured (Redis.fromEnv() reads from UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
+    if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL) {
       return res.status(503).json({ 
-        error: 'KV Storage not configured. Please set up Upstash KV in your project settings.' 
+        error: 'KV Storage not configured. Please set up Upstash Redis/KV in your project settings.' 
       });
     }
 
