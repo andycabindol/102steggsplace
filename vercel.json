@@ -5,6 +5,9 @@
     },
     "api/gallery.js": {
       "maxDuration": 10
+    },
+    "api/egg-count.js": {
+      "maxDuration": 10
     }
   }
 }

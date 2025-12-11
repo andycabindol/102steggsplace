@@ -1,7 +1,7 @@
-const STORAGE_KEY = 'eggPartyCount';
-
-// Load egg count from localStorage, default to 55 if not found
-let eggCount = parseInt(localStorage.getItem(STORAGE_KEY)) || 55;
+// Egg count will be loaded from API
+let eggCount = 55; // Temporary default, will be replaced by API call
+let pollInterval = null;
+let isUpdating = false; // Prevent concurrent updates
 
 const eggCountDisplay = document.getElementById('eggCount');
 const eggsGrid = document.getElementById('eggsGrid');
@@ -23,8 +23,98 @@ const photoPreview = document.getElementById('photoPreview');
 const removePreviewBtn = document.getElementById('removePreview');
 const uploadLabel = document.getElementById('uploadLabel');
 
-function saveEggCount() {
-    localStorage.setItem(STORAGE_KEY, eggCount.toString());
+// Save egg count to API
+async function saveEggCount() {
+    if (isUpdating) return; // Prevent concurrent saves
+    
+    isUpdating = true;
+    try {
+        const response = await fetch('/api/egg-count', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ count: eggCount }),
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            console.error('Failed to save egg count:', data.error);
+            // Fallback: could show error message to user
+        }
+    } catch (error) {
+        console.error('Error saving egg count:', error);
+    } finally {
+        isUpdating = false;
+    }
+}
+
+// Fetch egg count from API
+async function fetchEggCount() {
+    try {
+        const response = await fetch('/api/egg-count');
+        
+        if (response.status === 404) {
+            // API not available, use default
+            console.log('Egg count API not available, using default');
+            return 55;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && typeof data.count === 'number') {
+            return data.count;
+        }
+        
+        return 55; // Fallback to default
+    } catch (error) {
+        console.error('Error fetching egg count:', error);
+        return 55; // Fallback to default
+    }
+}
+
+// Poll for egg count updates (real-time sync via polling)
+async function pollEggCount() {
+    if (isUpdating) return; // Don't poll while updating
+    
+    try {
+        const serverCount = await fetchEggCount();
+        
+        // Only update if server count differs from local count
+        // This prevents unnecessary UI updates when user is actively changing the count
+        if (serverCount !== eggCount) {
+            const oldCount = eggCount;
+            eggCount = serverCount;
+            
+            // Update display if count changed
+            if (oldCount !== eggCount) {
+                // Clear thresholds when syncing from server so messages can appear again
+                // if count crosses thresholds from another device
+                shownThresholds.clear();
+                updateEggDisplay();
+            }
+        }
+    } catch (error) {
+        console.error('Error polling egg count:', error);
+    }
+}
+
+// Start polling for real-time updates
+function startPolling() {
+    // Poll every 1.5 seconds for near real-time updates
+    if (pollInterval) {
+        clearInterval(pollInterval);
+    }
+    pollInterval = setInterval(pollEggCount, 1500);
+}
+
+// Stop polling (useful if needed)
+function stopPolling() {
+    if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+    }
 }
 
 function createEgg() {
@@ -98,8 +188,28 @@ function updateNumberDisplay() {
     // Check for threshold messages
     checkEggThresholds();
     
-    // Save to localStorage
+    // Save to API (async, don't wait)
     saveEggCount();
+}
+
+// Update egg display (used when syncing from server)
+function updateEggDisplay() {
+    // Update the number display
+    eggCountDisplay.textContent = eggCount;
+    
+    // Recreate eggs to match count
+    eggsGrid.innerHTML = '';
+    const columnsPerRow = 6;
+    for (let i = 0; i < eggCount; i++) {
+        const egg = createEgg();
+        const reversedIndex = eggCount - 1 - i;
+        const rowFromTop = Math.floor(reversedIndex / columnsPerRow);
+        egg.style.animationDelay = `${rowFromTop * 0.1}s`;
+        eggsGrid.appendChild(egg);
+    }
+    
+    // Check for threshold messages
+    checkEggThresholds();
 }
 
 function initializeEggDisplay() {
@@ -616,17 +726,31 @@ imageInput.addEventListener('change', function(e) {
 removePreviewBtn.addEventListener('click', removePhotoPreview);
 
 // Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initializeEggDisplay();
-        loadGallery();
-        // Verify after a short delay
-        setTimeout(syncEggCount, 100);
-    });
-} else {
+async function initializeApp() {
+    // Fetch initial egg count from API
+    eggCount = await fetchEggCount();
+    
+    // Initialize display with fetched count
     initializeEggDisplay();
+    
+    // Load gallery
     loadGallery();
+    
+    // Start polling for real-time updates
+    startPolling();
+    
     // Verify after a short delay
     setTimeout(syncEggCount, 100);
 }
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
+
+// Clean up polling when page unloads
+window.addEventListener('beforeunload', () => {
+    stopPolling();
+});
 
