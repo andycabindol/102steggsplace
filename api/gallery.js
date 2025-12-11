@@ -1,7 +1,13 @@
 import { Redis } from '@upstash/redis';
 
 // Initialize Redis - automatically reads from environment variables
-const redis = Redis.fromEnv();
+let redis;
+try {
+  redis = Redis.fromEnv();
+} catch (error) {
+  console.error('Redis initialization error:', error);
+  redis = null;
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -9,8 +15,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Check if KV is configured (Redis.fromEnv() reads from UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
-    if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL) {
+    // Check if KV is configured
+    if (!redis || (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL)) {
+      console.log('KV not configured - missing environment variables or Redis initialization failed');
       // Return empty gallery if KV is not configured (for local dev)
       return res.status(200).json({
         success: true,
@@ -20,7 +27,23 @@ export default async function handler(req, res) {
 
     // Get all images from Upstash KV
     const imagesJson = await redis.lrange('gallery', 0, -1);
-    const images = (imagesJson || []).map(item => JSON.parse(item)).reverse(); // Reverse to show newest first
+    console.log('Retrieved from Redis:', imagesJson);
+    
+    if (!imagesJson || imagesJson.length === 0) {
+      return res.status(200).json({
+        success: true,
+        images: [],
+      });
+    }
+    
+    const images = imagesJson.map(item => {
+      try {
+        return typeof item === 'string' ? JSON.parse(item) : item;
+      } catch (e) {
+        console.error('Error parsing image item:', e, item);
+        return null;
+      }
+    }).filter(Boolean).reverse(); // Reverse to show newest first
 
     return res.status(200).json({
       success: true,
@@ -28,9 +51,10 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Gallery error:', error);
-    // Return empty array instead of error for better UX
-    return res.status(200).json({
-      success: true,
+    // Return error details for debugging
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to load gallery',
       images: [],
     });
   }

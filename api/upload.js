@@ -4,7 +4,13 @@ import formidable from 'formidable';
 import fs from 'fs';
 
 // Initialize Redis - automatically reads from environment variables
-const redis = Redis.fromEnv();
+let redis;
+try {
+  redis = Redis.fromEnv();
+} catch (error) {
+  console.error('Redis initialization error:', error);
+  redis = null;
+}
 
 export const config = {
   api: {
@@ -25,10 +31,10 @@ export default async function handler(req, res) {
       });
     }
     
-    // Check if KV is configured (Redis.fromEnv() reads from UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN)
-    if (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL) {
+    // Check if KV is configured
+    if (!redis || (!process.env.UPSTASH_REDIS_REST_URL && !process.env.KV_REST_API_URL)) {
       return res.status(503).json({ 
-        error: 'KV Storage not configured. Please set up Upstash Redis/KV in your project settings.' 
+        error: 'KV Storage not configured. Please set up Upstash Redis/KV in your project settings. Make sure UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set.' 
       });
     }
 
@@ -41,7 +47,7 @@ export default async function handler(req, res) {
     const [fields, files] = await form.parse(req);
     
     const file = files.image?.[0];
-    const caption = fields.caption?.[0]?.trim() || 'No caption';
+    const caption = fields.caption?.[0]?.trim() || '';
 
     if (!file) {
       return res.status(400).json({ error: 'No image file provided' });
@@ -74,7 +80,9 @@ export default async function handler(req, res) {
     };
 
     // Store metadata in Upstash KV
+    console.log('Storing image data:', imageData);
     await redis.lpush('gallery', JSON.stringify(imageData));
+    console.log('Successfully stored in Redis');
 
     return res.status(200).json({
       success: true,

@@ -29,7 +29,11 @@
             <div class="upload-section">
                 <div class="upload-box">
                     <input type="file" id="imageInput" accept="image/*" style="display: none;">
-                    <label for="imageInput" class="upload-label">
+                    <div id="photoPreviewContainer" class="photo-preview-container" style="display: none;">
+                        <img id="photoPreview" class="photo-preview" src="" alt="Preview">
+                        <button id="removePreview" class="remove-preview-btn" title="Remove photo">×</button>
+                    </div>
+                    <label for="imageInput" class="upload-label" id="uploadLabel">
                         <span class="upload-icon">📷</span>
                         <span>Choose Photo</span>
                     </label>

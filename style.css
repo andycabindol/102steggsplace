@@ -274,6 +274,54 @@ body {
     box-shadow: 6px 6px 0px #000;
 }
 
+.photo-preview-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border: 3px solid #000;
+    box-shadow: 4px 4px 0px #000;
+    overflow: hidden;
+    background: #FFF;
+}
+
+.photo-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.remove-preview-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    background: #000;
+    color: #FFF;
+    border: 3px solid #000;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.15s ease;
+    box-shadow: 2px 2px 0px #000;
+}
+
+.remove-preview-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 3px 3px 0px #000;
+}
+
+.remove-preview-btn:active {
+    transform: scale(0.95);
+}
+
 .upload-icon {
     font-size: 1.2rem;
 }
@@ -340,6 +388,10 @@ body {
     border: 3px solid #000;
 }
 
+.upload-status:empty {
+    display: none;
+}
+
 .upload-status.success {
     background: #FFF;
     color: #000;
@@ -376,11 +428,86 @@ body {
     transition: all 0.2s ease;
     animation: fadeIn 0.5s ease backwards;
     transform: rotate(-1deg);
+    position: relative;
 }
 
 .gallery-item:hover {
     transform: rotate(1deg) translateY(-3px);
     box-shadow: 8px 8px 0px #000;
+}
+
+.gallery-item-header {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    pointer-events: none; /* Allow clicks to pass through to image */
+}
+
+.gallery-menu-btn {
+    pointer-events: auto; /* Re-enable clicks for the button */
+}
+
+.gallery-menu-btn {
+    width: 35px;
+    height: 35px;
+    background: #000;
+    color: #FFF;
+    border: 3px solid #000;
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.15s ease;
+    box-shadow: 2px 2px 0px #000;
+    font-family: inherit;
+}
+
+.gallery-menu-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 3px 3px 0px #000;
+}
+
+.gallery-menu {
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background: #FFF;
+    border: 3px solid #000;
+    box-shadow: 4px 4px 0px #000;
+    min-width: 150px;
+    z-index: 20;
+    pointer-events: auto; /* Ensure menu is clickable */
+}
+
+.gallery-menu-item {
+    width: 100%;
+    padding: 12px 15px;
+    background: #FFF;
+    color: #000;
+    border: none;
+    border-bottom: 2px solid #000;
+    font-family: inherit;
+    font-weight: 900;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.gallery-menu-item:last-child {
+    border-bottom: none;
+}
+
+.gallery-menu-item:hover {
+    background: #000;
+    color: #FFF;
 }
 
 @keyframes fadeIn {
@@ -418,6 +545,12 @@ body {
     text-align: center;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    background: #FFF;
+}
+
+.gallery-item-caption-empty {
+    min-height: 50px;
+    background: #FFF;
 }
 
 .gallery-empty {
