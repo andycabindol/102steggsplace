@@ -111,9 +111,16 @@ function initializeEggDisplay() {
     // Add exactly eggCount eggs in normal order
     // With flex-wrap: wrap-reverse, they'll fill bottom-left to top-right
     // First item = bottom-left, last item = top-right
+    // Calculate delay based on visual row position (top to bottom)
+    const columnsPerRow = 6; // Based on your grid setup
     for (let i = 0; i < eggCount; i++) {
         const egg = createEgg();
-        egg.style.animationDelay = `${(i % 20) * 0.05}s`;
+        // Calculate which visual row this egg is in (from top)
+        // Last eggs in DOM are visually at top, first eggs are at bottom
+        const reversedIndex = eggCount - 1 - i;
+        const rowFromTop = Math.floor(reversedIndex / columnsPerRow);
+        // Top row animates first (delay 0), bottom row animates last
+        egg.style.animationDelay = `${rowFromTop * 0.1}s`;
         eggsGrid.appendChild(egg);
     }
     
